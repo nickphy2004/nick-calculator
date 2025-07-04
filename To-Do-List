@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart TODO App</title>
+  <style>
+    :root {
+      --bg: #fefefe;
+      --text: #222;
+      --primary: #4e9af1;
+      --card: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark {
+      --bg: #181818;
+      --text: #f2f2f2;
+      --primary: #4ea8de;
+      --card: #242424;
+      --shadow: rgba(255, 255, 255, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .to{
+        background-color:pink;
+        display: flex;
+        justify-content: center;
+        padding: 50px;
+        width: 30%;
+        border-radius: 20px;
+        
+    }
+    #DO{
+        display: flex;
+        justify-content: center;
+        margin-top: 5%;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app-container {
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 24px;
+    }
+
+    #themeToggle {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    #themeToggle:hover {
+      transform: rotate(20deg);
+    }
+
+    .date-time {
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+
+    .input-container {
+      display: flex;
+      margin-bottom: 15px;
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      font-size: 14px;
+    }
+
+    .input-container button {
+      padding: 10px 15px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+    }
+
+    .task-stats {
+      text-align: center;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .clear-all {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: crimson;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    li {
+      background: var(--card);
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px var(--shadow);
+      transition: all 0.3s ease;
+    }
+
+    li.completed {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    li i {
+      cursor: pointer;
+      color: var(--primary);
+    }
+
+    @media (max-width: 480px) {
+      .input-container input {
+        font-size: 12px;
+      }
+      header h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="DO">
+    <div class="to">
+  <div class="app-container">
+    <header>
+      <h1>✅ My Tasks</h1>
+      <button id="themeToggle">🌙</button>
+    </header>
+
+    <div class="date-time" id="dateTime"></div>
+
+    <main>
+      <div class="input-container">
+        <input type="text" id="taskInput" placeholder="What do you want to do?" />
+        <button onclick="addTask()">Add</button>
+      </div>
+
+      <div class="task-stats" id="taskStats">Total: 0 | Completed: 0</div>
+
+      <ul id="taskList"></ul>
+
+      <button class="clear-all" onclick="clearAllTasks()">Clear All Tasks</button>
+    </main>
+  </div>
+  </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTasks();
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+    });
+
+    const themeToggle = document.getElementById("themeToggle");
+
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
+
+    function updateDateTime() {
+      const now = new Date();
+      document.getElementById("dateTime").textContent = now.toLocaleString();
+    }
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const task = input.value.trim();
+      if (task === "") return;
+
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <span onclick="toggleComplete(this)">${task}</span>
+        <i class="fas fa-trash" onclick="deleteTask(this)"></i>
+      `;
+      document.getElementById("taskList").appendChild(li);
+      input.value = "";
+      saveTasks();
+    }
+
+    function deleteTask(icon) {
+      icon.parentElement.remove();
+      saveTasks();
+    }
+
+    function toggleComplete(span) {
+      span.parentElement.classList.toggle("completed");
+      saveTasks();
+    }
+
+    function clearAllTasks() {
+      if (confirm("Are you sure you want to delete all tasks?")) {
+        document.getElementById("taskList").innerHTML = "";
+        saveTasks();
+      }
+    }
+
+    function saveTasks() {
+      const tasks = [];
+      document.querySelectorAll("#taskList li").forEach((li) => {
+        tasks.push({
+          text: li.querySelector("span").innerText,
+          completed: li.classList.contains("completed"),
+        });
+      });
+      localStorage.setItem("todoTasks", JSON.stringify(tasks));
+      updateStats();
+    }
+
+    function loadTasks() {
+      const saved = localStorage.getItem("todoTasks");
+      if (!saved) return;
+      const tasks = JSON.parse(saved);
+      tasks.forEach(({ text, completed }) => {
+        const li = document.createElement("li");
+        if (completed) li.classList.add("completed");
+        li.innerHTML = `
+          <span onclick="toggleComplete(this)">${text}</span>
+          <i class="fas fa-trash" onclick="deleteTask(this)"></i>
+        `;
+        document.getElementById("taskList").appendChild(li);
+      });
+      updateStats();
+    }
+
+    function updateStats() {
+      const allTasks = document.querySelectorAll("#taskList li");
+      const completedTasks = document.querySelectorAll("#taskList li.completed");
+      document.getElementById("taskStats").textContent =
+        `Total: ${allTasks.length} | Completed: ${completedTasks.length}`;
+    }
+  </script>
+</body>
+</html>
